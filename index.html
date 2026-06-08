@@ -5,351 +5,376 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
 <title>接客メモ録音ツール</title>
 <style>
-*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
-:root{
-  --bg:#0F1117;
-  --surface:#1A1D27;
-  --surface2:#22263A;
-  --border:#2E3352;
-  --blue:#4A8FE7;
-  --blue-dim:#1E3A6E;
-  --red:#E74A4A;
-  --red-dim:#6E1E1E;
-  --green:#4AE78A;
-  --green-dim:#1E6E42;
-  --text:#E8EAF6;
-  --text2:#8B92B8;
-  --text3:#4A5070;
-  --radius:16px;
-}
-body{
-  font-family:-apple-system,BlinkMacSystemFont,'Hiragino Sans','Yu Gothic UI',sans-serif;
-  background:var(--bg);
-  color:var(--text);
-  min-height:100vh;
-  padding:0;
-  display:flex;
-  flex-direction:column;
-}
-.header{
-  padding:16px 20px 12px;
-  border-bottom:1px solid var(--border);
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  background:var(--surface);
-}
-.logo{
-  font-size:13px;
-  font-weight:600;
-  color:var(--blue);
-  letter-spacing:.05em;
-}
-.session-badge{
-  font-size:11px;
-  color:var(--text3);
-  background:var(--surface2);
-  padding:3px 10px;
-  border-radius:20px;
-  border:1px solid var(--border);
-}
-.main{
-  flex:1;
-  display:flex;
-  flex-direction:column;
-  align-items:center;
-  padding:24px 20px;
-  gap:20px;
-  max-width:520px;
-  margin:0 auto;
-  width:100%;
-}
+  :root {
+    --bg: #0A0C14;
+    --surface: #111420;
+    --surface2: #181D2E;
+    --surface3: #1E2438;
+    --border: #252C45;
+    --blue: #4F8EF7;
+    --blue-dark: #3A6FD4;
+    --red: #F05050;
+    --green: #3DD68C;
+    --amber: #F0B030;
+    --text1: #ECF0FF;
+    --text2: #8A93BE;
+    --text3: #3D4468;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  body {
+    background: var(--bg);
+    color: var(--text1);
+    font-family: 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Noto Sans JP', sans-serif;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    max-width: 520px;
+    margin: 0 auto;
+  }
 
-/* 録音ボタン */
-.rec-area{
-  display:flex;
-  flex-direction:column;
-  align-items:center;
-  gap:16px;
-  width:100%;
-}
-.rec-btn{
-  width:120px;
-  height:120px;
-  border-radius:50%;
-  border:none;
-  cursor:pointer;
-  display:flex;
-  flex-direction:column;
-  align-items:center;
-  justify-content:center;
-  gap:8px;
-  font-size:13px;
-  font-weight:600;
-  letter-spacing:.04em;
-  transition:all .2s;
-  position:relative;
-  outline:none;
-  -webkit-tap-highlight-color:transparent;
-}
-.rec-btn.idle{
-  background:var(--blue);
-  color:#fff;
-  box-shadow:0 0 0 0 rgba(74,143,231,0.4);
-}
-.rec-btn.idle:active{transform:scale(0.95);}
-.rec-btn.recording{
-  background:var(--red);
-  color:#fff;
-  animation:pulse 1.5s ease-in-out infinite;
-}
-.rec-btn.recording:active{transform:scale(0.95);}
-@keyframes pulse{
-  0%,100%{box-shadow:0 0 0 0 rgba(231,74,74,0.5);}
-  50%{box-shadow:0 0 0 20px rgba(231,74,74,0);}
-}
-.rec-icon{font-size:32px;}
-.rec-timer{
-  font-size:28px;
-  font-weight:300;
-  color:var(--text2);
-  letter-spacing:.1em;
-  font-variant-numeric:tabular-nums;
-  min-width:80px;
-  text-align:center;
-}
-.rec-timer.active{color:var(--red);}
-.rec-status{
-  font-size:12px;
-  color:var(--text3);
-}
+  /* Header */
+  .header {
+    padding: 13px 20px;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+  }
+  .header-left { display: flex; align-items: center; gap: 10px; }
+  .header-icon {
+    width: 30px; height: 30px; border-radius: 8px;
+    background: linear-gradient(135deg, var(--blue), #7B5FF0);
+    display: flex; align-items: center; justify-content: center; font-size: 14px;
+  }
+  .header-title { font-size: 12px; font-weight: 700; color: var(--text1); }
+  .header-sub { font-size: 10px; color: var(--text3); margin-top: 1px; }
+  .badge {
+    font-size: 11px; font-weight: 600;
+    background: var(--surface2); padding: 3px 10px;
+    border-radius: 20px; border: 1px solid var(--border);
+    color: var(--text3); transition: all .3s;
+  }
+  .badge.has-data { color: var(--green); border-color: rgba(61,214,140,.3); }
 
-/* 文字起こしエリア */
-.transcript-card{
-  width:100%;
-  background:var(--surface);
-  border:1px solid var(--border);
-  border-radius:var(--radius);
-  overflow:hidden;
-}
-.card-header{
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  padding:12px 16px;
-  border-bottom:1px solid var(--border);
-}
-.card-title{
-  font-size:12px;
-  font-weight:600;
-  color:var(--text2);
-  letter-spacing:.06em;
-  text-transform:uppercase;
-}
-.card-actions{display:flex;gap:8px;}
-.icon-btn{
-  background:var(--surface2);
-  border:1px solid var(--border);
-  color:var(--text2);
-  font-size:12px;
-  padding:4px 10px;
-  border-radius:8px;
-  cursor:pointer;
-  transition:all .15s;
-  font-family:inherit;
-}
-.icon-btn:hover{background:var(--border);color:var(--text);}
-.icon-btn.primary{background:var(--blue-dim);border-color:var(--blue);color:var(--blue);}
-.icon-btn.primary:hover{background:var(--blue);color:#fff;}
-.transcript-body{
-  padding:16px;
-  min-height:140px;
-  max-height:280px;
-  overflow-y:auto;
-}
-#transcript-text{
-  font-size:14px;
-  line-height:1.8;
-  color:var(--text);
-  white-space:pre-wrap;
-  outline:none;
-  min-height:100px;
-}
-#transcript-text:empty::before{
-  content:'録音を開始すると、ここにテキストが表示されます...';
-  color:var(--text3);
-  pointer-events:none;
-}
-.interim{color:var(--text3);font-style:italic;}
+  /* Tabs */
+  .tabs {
+    display: flex; gap: 6px; padding: 10px 16px;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface);
+  }
+  .tab-btn {
+    background: transparent; border: 1px solid var(--border);
+    color: var(--text2); font-size: 11px; font-weight: 500;
+    padding: 6px 13px; border-radius: 8px; cursor: pointer;
+    font-family: inherit; transition: all .15s;
+  }
+  .tab-btn.active {
+    background: var(--blue); border-color: var(--blue);
+    color: #fff; font-weight: 700;
+  }
 
-/* メモエリア */
-.memo-card{
-  width:100%;
-  background:var(--surface);
-  border:1px solid var(--border);
-  border-radius:var(--radius);
-  overflow:hidden;
-}
-#memo-text{
-  width:100%;
-  background:transparent;
-  border:none;
-  color:var(--text);
-  font-size:14px;
-  line-height:1.8;
-  padding:16px;
-  resize:none;
-  outline:none;
-  font-family:inherit;
-  min-height:80px;
-}
-#memo-text::placeholder{color:var(--text3);}
+  /* Content */
+  .content { flex: 1; padding: 18px 16px; display: flex; flex-direction: column; gap: 14px; }
+  .tab-panel { display: none; flex-direction: column; gap: 14px; }
+  .tab-panel.active { display: flex; }
 
-/* アクションエリア */
-.actions{
-  width:100%;
-  display:flex;
-  flex-direction:column;
-  gap:10px;
-}
-.action-btn{
-  width:100%;
-  padding:14px;
-  border-radius:var(--radius);
-  border:none;
-  font-size:14px;
-  font-weight:600;
-  cursor:pointer;
-  font-family:inherit;
-  transition:all .15s;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  gap:8px;
-  letter-spacing:.02em;
-  -webkit-tap-highlight-color:transparent;
-}
-.action-btn.claude{
-  background:var(--surface2);
-  border:1px solid var(--border);
-  color:var(--text);
-}
-.action-btn.claude:hover{border-color:var(--blue);color:var(--blue);}
-.action-btn.form{
-  background:var(--blue);
-  color:#fff;
-}
-.action-btn.form:hover{background:#3A7FD7;}
-.action-btn:disabled{opacity:.4;cursor:not-allowed;}
+  /* Cards */
+  .card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 14px; overflow: hidden; width: 100%;
+  }
+  .card-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 10px 16px; border-bottom: 1px solid var(--border);
+    background: var(--surface2);
+  }
+  .card-title { font-size: 11px; font-weight: 700; color: var(--text1); }
+  .card-sub { font-size: 10px; color: var(--text3); margin-top: 2px; }
+  .clear-btn {
+    background: var(--surface3); border: 1px solid var(--border);
+    color: var(--text2); font-size: 11px; padding: 3px 10px;
+    border-radius: 7px; cursor: pointer; font-family: inherit;
+  }
 
-/* コピー完了トースト */
-.toast{
-  position:fixed;
-  bottom:24px;
-  left:50%;
-  transform:translateX(-50%) translateY(80px);
-  background:var(--green-dim);
-  border:1px solid var(--green);
-  color:var(--green);
-  font-size:13px;
-  padding:10px 20px;
-  border-radius:40px;
-  transition:transform .3s ease;
-  pointer-events:none;
-  white-space:nowrap;
-  z-index:100;
-}
-.toast.show{transform:translateX(-50%) translateY(0);}
+  /* Select */
+  select {
+    background: var(--surface3); border: 1px solid var(--border);
+    color: var(--text3); font-size: 13px; padding: 8px 12px;
+    border-radius: 9px; width: 100%; font-family: inherit; outline: none;
+    appearance: none; -webkit-appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath fill='%233D4468' d='M6 8L0 0h12z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat; background-position: right 12px center;
+    padding-right: 32px;
+  }
+  select.selected { color: var(--text1); border-color: rgba(79,142,247,.5); }
+  .select-wrap { padding: 10px 12px; }
 
-/* セッション履歴 */
-.history-card{
-  width:100%;
-  background:var(--surface);
-  border:1px solid var(--border);
-  border-radius:var(--radius);
-  overflow:hidden;
-}
-.history-list{
-  padding:8px;
-  display:flex;
-  flex-direction:column;
-  gap:6px;
-  max-height:200px;
-  overflow-y:auto;
-}
-.history-item{
-  background:var(--surface2);
-  border:1px solid var(--border);
-  border-radius:10px;
-  padding:10px 12px;
-  cursor:pointer;
-  transition:border-color .15s;
-}
-.history-item:hover{border-color:var(--blue);}
-.history-meta{font-size:11px;color:var(--text3);margin-bottom:4px;}
-.history-preview{font-size:12px;color:var(--text2);overflow:hidden;white-space:nowrap;text-overflow:ellipsis;}
-.empty-history{padding:16px;text-align:center;font-size:12px;color:var(--text3);}
+  /* Recording area */
+  .rec-area {
+    display: flex; flex-direction: column; align-items: center; gap: 12px;
+    padding: 20px 16px;
+  }
+  .rec-btn {
+    width: 100px; height: 100px; border-radius: 50%; border: none;
+    cursor: pointer; display: flex; flex-direction: column;
+    align-items: center; justify-content: center; gap: 5px;
+    font-size: 12px; font-weight: 700; font-family: inherit;
+    color: #fff; transition: all .25s;
+    background: radial-gradient(circle, var(--blue), var(--blue-dark));
+    box-shadow: 0 4px 24px rgba(79,142,247,.4);
+  }
+  .rec-btn.recording {
+    background: radial-gradient(circle, var(--red), #A02020);
+    box-shadow: 0 0 0 10px rgba(240,80,80,.15), 0 0 0 20px rgba(240,80,80,.07);
+  }
+  .rec-icon { font-size: 28px; }
+  .timer {
+    font-size: 26px; font-weight: 300; letter-spacing: .12em;
+    color: var(--text2); font-variant-numeric: tabular-nums; transition: color .3s;
+  }
+  .timer.recording { color: var(--red); }
+  .rec-hint { font-size: 11px; color: var(--text3); }
+
+  /* Transcript */
+  .transcript-body {
+    padding: 14px; min-height: 100px; max-height: 200px;
+    overflow-y: auto; font-size: 13px; line-height: 1.85;
+    color: var(--text1); white-space: pre-wrap;
+  }
+  .placeholder { color: var(--text3); }
+  .interim { color: var(--text3); font-style: italic; }
+  .char-count {
+    padding: 6px 14px 10px; display: flex; align-items: center; gap: 6px;
+  }
+  .char-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--green); }
+  .char-num { font-size: 11px; color: var(--green); font-weight: 600; }
+
+  /* Textarea */
+  textarea {
+    width: 100%; background: transparent; border: none;
+    color: var(--text1); font-size: 13px; line-height: 1.85;
+    padding: 14px; resize: none; outline: none; font-family: inherit;
+    min-height: 70px;
+  }
+
+  /* Collapsible voice memo */
+  .collapse-btn {
+    width: 100%; background: transparent; border: none; cursor: pointer;
+    padding: 10px 16px; display: flex; align-items: center;
+    justify-content: space-between; font-family: inherit;
+  }
+  .collapse-left { display: flex; align-items: center; gap: 8px; }
+  .collapse-title { font-size: 11px; font-weight: 600; color: var(--text2); text-align: left; }
+  .collapse-sub { font-size: 10px; color: var(--text3); margin-top: 1px; text-align: left; }
+  .collapse-arrow { font-size: 10px; color: var(--text3); transition: transform .2s; }
+  .collapse-arrow.open { transform: rotate(180deg); }
+  .collapse-body { border-top: 1px solid var(--border); display: none; }
+  .collapse-body.open { display: block; }
+
+  /* Copy btn */
+  .copy-btn {
+    margin: 0 14px 12px;
+    background: var(--surface3); border: 1px solid var(--border);
+    color: var(--text2); font-size: 12px; padding: 7px 14px;
+    border-radius: 8px; cursor: pointer; font-family: inherit;
+    width: calc(100% - 28px);
+  }
+
+  /* Big button */
+  .big-btn {
+    width: 100%; padding: 14px 0; border-radius: 12px; border: none;
+    font-size: 15px; font-weight: 700; cursor: pointer; color: #fff;
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+    font-family: inherit; letter-spacing: .04em; transition: opacity .15s;
+  }
+  .big-btn.primary { background: linear-gradient(135deg, var(--blue), #6A4FF0); }
+  .big-btn.secondary { background: var(--surface3); color: var(--text2); }
+  .big-btn:disabled { opacity: 0.5; cursor: not-allowed; background: var(--surface3); color: var(--text2); }
+
+  /* Link */
+  .link-row { text-align: center; }
+  .link-row a {
+    font-size: 11px; color: var(--blue); text-decoration: none;
+    border-bottom: 1px solid rgba(79,142,247,.3); padding-bottom: 1px;
+  }
+
+  /* Result fields */
+  .result-field {
+    background: var(--surface2); border: 1px solid var(--border);
+    border-radius: 10px; padding: 10px 14px; margin-bottom: 8px;
+  }
+  .field-label {
+    font-size: 9px; font-weight: 700; color: var(--text3);
+    text-transform: uppercase; letter-spacing: .1em; margin-bottom: 3px;
+  }
+  .field-value { font-size: 13px; color: var(--text1); line-height: 1.7; }
+
+  .saved-banner {
+    background: rgba(61,214,140,.1); border: 1px solid rgba(61,214,140,.3);
+    border-radius: 10px; padding: 10px 14px;
+    display: flex; align-items: center; gap: 10px;
+  }
+  .saved-title { font-size: 12px; font-weight: 700; color: var(--green); }
+  .saved-sub { font-size: 10px; color: var(--text3); margin-top: 1px; }
+
+  .customer-badge {
+    display: inline-flex; align-items: center; gap: 6px;
+    font-size: 11px; font-weight: 700; padding: 5px 12px;
+    border-radius: 20px; letter-spacing: .04em;
+  }
+  .customer-badge.new { background: rgba(79,142,247,.15); border: 1px solid rgba(79,142,247,.4); color: var(--blue); }
+  .customer-badge.existing { background: rgba(61,214,140,.15); border: 1px solid rgba(61,214,140,.4); color: var(--green); }
+
+  .action-field {
+    border-radius: 10px; padding: 10px 14px; margin-bottom: 4px;
+  }
+  .action-field.commercial { background: rgba(240,176,48,.1); border: 1px solid rgba(240,176,48,.3); }
+  .action-field.material { background: rgba(79,142,247,.1); border: 1px solid rgba(79,142,247,.3); }
+  .action-field.none { background: var(--surface2); border: 1px solid var(--border); }
+  .action-value { font-size: 14px; font-weight: 700; }
+  .action-value.commercial { color: var(--amber); }
+  .action-value.material { color: var(--blue); }
+  .action-value.none { color: var(--text2); }
+
+  /* History */
+  .history-item {
+    background: var(--surface2); border: 1px solid var(--border);
+    border-radius: 10px; padding: 10px 14px; margin-bottom: 8px;
+    border-left: 3px solid var(--border);
+  }
+  .history-item.commercial { border-left-color: var(--amber); }
+  .history-item.material { border-left-color: var(--blue); }
+  .history-meta { font-size: 10px; color: var(--text3); margin-bottom: 4px; }
+  .history-company { font-size: 13px; font-weight: 600; color: var(--text1); margin-bottom: 2px; }
+  .history-action { font-size: 11px; font-weight: 600; margin-top: 3px; }
+
+  /* Toast */
+  .toast {
+    position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
+    font-size: 13px; font-weight: 600; padding: 10px 22px;
+    border-radius: 40px; white-space: nowrap; z-index: 200;
+    opacity: 0; pointer-events: none; transition: opacity .3s;
+  }
+  .toast.show { opacity: 1; }
+  .toast.success { background: #0F3A25; border: 1px solid rgba(61,214,140,.5); color: var(--green); }
+  .toast.error { background: #5A1A1A; border: 1px solid rgba(240,80,80,.5); color: var(--red); }
+  .toast.info { background: #1A2A4A; border: 1px solid rgba(79,142,247,.5); color: var(--blue); }
+
+  .empty-state { text-align: center; color: var(--text3); font-size: 13px; padding: 60px 0; }
 </style>
 </head>
 <body>
 
 <div class="header">
-  <span class="logo">🎙 接客メモ</span>
-  <span class="session-badge" id="session-count">本日 0件</span>
+  <div class="header-left">
+    <div class="header-icon">🎙</div>
+    <div>
+      <div class="header-title">Dataikuサミット</div>
+      <div class="header-sub">接客メモ 録音・AI整理ツール</div>
+    </div>
+  </div>
+  <div class="badge" id="badge">本日 0 件</div>
 </div>
 
-<div class="main">
+<div class="tabs">
+  <button class="tab-btn active" onclick="switchTab('record')">🎤 録音</button>
+  <button class="tab-btn" onclick="switchTab('result')">✨ 整理結果</button>
+  <button class="tab-btn" onclick="switchTab('history')">📂 履歴</button>
+</div>
 
-  <!-- 録音ボタン -->
-  <div class="rec-area">
-    <button class="rec-btn idle" id="rec-btn" onclick="toggleRecording()">
-      <span class="rec-icon" id="rec-icon">🎤</span>
-      <span id="rec-label">録音開始</span>
-    </button>
-    <div class="rec-timer" id="rec-timer">0:00</div>
-    <div class="rec-status" id="rec-status">タップして録音を開始</div>
-  </div>
+<div class="content">
 
-  <!-- 文字起こし -->
-  <div class="transcript-card">
-    <div class="card-header">
-      <span class="card-title">文字起こし</span>
-      <div class="card-actions">
-        <button class="icon-btn" onclick="clearTranscript()">クリア</button>
-        <button class="icon-btn primary" id="copy-btn" onclick="copyTranscript()">コピー</button>
+  <!-- RECORD TAB -->
+  <div class="tab-panel active" id="tab-record">
+
+    <!-- 担当者 -->
+    <div class="card">
+      <div class="card-header"><span class="card-title">担当者</span></div>
+      <div class="select-wrap">
+        <select id="member-select" onchange="this.className=this.value?'selected':''">
+          <option value="">担当者名を選択してください</option>
+          <option>馬 智坤</option><option>小林 純一朗</option><option>細川 亮一</option>
+          <option>藤田 佑衣子</option><option>河内 優樹</option><option>板谷 整彦</option>
+          <option>吉場 紀雄</option><option>池田 翔太郎</option><option>鳥越 希</option>
+          <option>構井 友人</option><option>花井 翔</option><option>五十嵐 進</option>
+        </select>
       </div>
     </div>
-    <div class="transcript-body">
-      <div id="transcript-text" contenteditable="true"></div>
-    </div>
-  </div>
 
-  <!-- メモ欄 -->
-  <div class="memo-card">
-    <div class="card-header">
-      <span class="card-title">補足メモ</span>
+    <!-- 録音 -->
+    <div class="card">
+      <div class="rec-area">
+        <button class="rec-btn" id="rec-btn" onclick="toggleRec()">
+          <span class="rec-icon" id="rec-icon">🎤</span>
+          <span id="rec-label">録音開始</span>
+        </button>
+        <div class="timer" id="timer">0:00</div>
+        <div class="rec-hint" id="rec-hint">タップして録音を開始</div>
+      </div>
     </div>
-    <textarea id="memo-text" placeholder="会社名・担当者名・気になった点など&#10;接客後に追記してください"></textarea>
-  </div>
 
-  <!-- アクション -->
-  <div class="actions">
-    <button class="action-btn claude" onclick="copyForClaude()">
-      📋 Claudeに貼り付け用テキストをコピー
+    <!-- 文字起こし -->
+    <div class="card">
+      <div class="card-header">
+        <span class="card-title">文字起こし</span>
+        <div style="display:flex;gap:6px">
+          <button class="clear-btn" onclick="copyTranscript()">コピー</button>
+          <button class="clear-btn" onclick="clearTranscript()">クリア</button>
+        </div>
+      </div>
+      <div class="transcript-body" id="transcript">
+        <span class="placeholder">録音を開始するとここにテキストが表示されます…</span>
+      </div>
+      <div class="char-count" id="char-count" style="display:none">
+        <div class="char-dot"></div>
+        <span class="char-num" id="char-num">0 文字</span>
+      </div>
+    </div>
+
+    <!-- 補足メモ -->
+    <div class="card">
+      <div class="card-header"><span class="card-title">補足メモ</span></div>
+      <textarea id="memo" placeholder="会社名・役職・気になった点など追記してください"></textarea>
+    </div>
+
+    <!-- 口頭メモ -->
+    <div class="card" style="border-color:rgba(37,44,69,.6)">
+      <button class="collapse-btn" onclick="toggleCollapse()">
+        <div class="collapse-left">
+          <span>🎤</span>
+          <div>
+            <div class="collapse-title" id="voice-memo-title">口頭メモ（任意）</div>
+            <div class="collapse-sub">キーボードのマイクで短く補足</div>
+          </div>
+        </div>
+        <span class="collapse-arrow" id="collapse-arrow">▼</span>
+      </button>
+      <div class="collapse-body" id="collapse-body">
+        <textarea id="voice-memo" placeholder="会社名・役職・次のアクションなど気になった点を補足（キーボード🎤で話すと便利です）"></textarea>
+      </div>
+    </div>
+
+    <button class="big-btn primary" id="analyze-btn" onclick="analyzeAndSave()">
+      ✨ 整理してスプシに保存
     </button>
-    <button class="action-btn form" onclick="openForm()">
-      📝 Googleフォームを開く
-    </button>
+
   </div>
 
-  <!-- セッション履歴 -->
-  <div class="history-card">
-    <div class="card-header">
-      <span class="card-title">本日の履歴</span>
-      <button class="icon-btn" onclick="clearHistory()">全削除</button>
+  <!-- RESULT TAB -->
+  <div class="tab-panel" id="tab-result">
+    <div id="result-content">
+      <div class="empty-state">録音タブで「整理してスプシに保存」を押してください</div>
     </div>
-    <div class="history-list" id="history-list">
-      <div class="empty-history">まだ記録がありません</div>
+  </div>
+
+  <!-- HISTORY TAB -->
+  <div class="tab-panel" id="tab-history">
+    <div id="history-content">
+      <div class="empty-state">まだ記録がありません</div>
     </div>
   </div>
 
@@ -358,210 +383,320 @@ body{
 <div class="toast" id="toast"></div>
 
 <script>
-// ===== 設定 =====
-const FORM_URL = 'https://docs.google.com/forms/d/1nAGfdcJkHijcc075mTcVtglPRaXH1v_RQJrpCtyv760/viewform';
-const CLAUDE_PROMPT = `以下は展示会での接客内容の文字起こしです。
-以下の項目に整理してください：
+const WEBHOOK_URL = "https://script.google.com/a/macros/keywalker.jp/s/AKfycbya97beGGW9sLebUiq0FSLFMag3PI0GgW_C46BDyM-xyh57HBwXUgD5zH3j_C58TIq_zA/exec";
+const MEMBERS = ["馬 智坤","小林 純一朗","細川 亮一","藤田 佑衣子","河内 優樹","板谷 整彦","吉場 紀雄","池田 翔太郎","鳥越 希","構井 友人","花井 翔","五十嵐 進"];
+const HEADERS = [
+  "Timestamp","【内部管理】担当者名","会社名・部署名（任意）","現在、Dataikuをご利用いただいていますか？",
+  "お役職・職種をお聞かせください","会社の従業員規模を教えてください",
+  "本日のサミット参加理由に近いものは？（複数選択可）","現在のデータ活用・AI導入の状況は？",
+  "データ活用で困っている領域はどこですか？（複数選択可）","今一番解決したいビジネス上の課題・ペインを教えてください",
+  "もしデータ活用・AIが理想通り進んだら、何が変わりますか？","導入検討にあたって、社内の意思決定者や承認プロセスについて教えてください",
+  "現在のDataiku活用の満足度を教えてください","現在、主にどのような用途でご利用ですか？（複数選択可）",
+  "Dataikuを活用しているチーム・部門はどこですか？","現在の活用で感じている壁・ボトルネックは？（複数選択可）",
+  "次のフェーズとして取り組みたいことはありますか？（複数選択可）","Dataiku導入後、ビジネスへの効果として実感していることを教えてください",
+  "今後のDataiku活用・拡張にあたって、サポートしてほしいことがあれば教えてください",
+  "他に検討・比較しているツール・ソリューションがあれば教えてください（任意）",
+  "今後の商談・情報提供について","ご連絡先メールアドレス（任意）","本日のブース・対話の感想（任意）"
+];
+const SYSTEM_PROMPT = `あなたは展示会接客内容を整理するアシスタントです。
+文字起こしテキストから以下のJSON形式で情報を抽出してください。
+JSONのみを返し、マークダウンのコードブロックや説明文は一切含めないでください。
+{"staff":"担当者名（MEMBERSリストから最も近いものを選ぶ、不明なら空文字）","company":"会社名・部署名","dataiku_user":"まだ利用していない（新規）またはすでに利用中（既存顧客）","role":"役職・職種","company_size":"従業員規模（〜100名/101〜500名/501〜1,000名/1,001名以上）","visit_reason":"参加理由","ai_status":"AI導入状況","pain_area":"困っている領域","pain":"解決したい課題・ペイン","goal":"理想のゴール","decision":"意思決定プロセス","satisfaction":"満足度","usage":"利用用途","team":"活用チーム","bottleneck":"ボトルネック","next_phase":"次フェーズ","effect":"導入効果","support_needed":"サポートしてほしいこと","competitors":"比較ツール","action":"商談希望 または 資料送付希望 または 今は不要","email":"メールアドレス","impression":"感想"}`;
 
-【会社名・部署名】
-【担当者のお役職】
-【現状・課題】
-【やりたいこと・ゴール】
-【次のアクション】（商談希望/資料送付/不要）
-【その他メモ】
-
----文字起こし---
-`;
-
-// ===== 状態 =====
 let recognition = null;
 let isRecording = false;
+let elapsed = 0;
 let timerInterval = null;
-let elapsedSeconds = 0;
-let finalTranscript = '';
-let sessionCount = 0;
+let finalText = "";
+let sessions = [];
+let currentParsed = null;
 
-// ===== 音声認識初期化 =====
-function initRecognition() {
-  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-  if (!SpeechRecognition) {
-    showToast('⚠️ このブラウザは音声認識未対応です（Chrome推奨）');
-    return null;
-  }
-  const r = new SpeechRecognition();
-  r.lang = 'ja-JP';
-  r.continuous = true;
-  r.interimResults = true;
+// Init
+try { sessions = JSON.parse(localStorage.getItem("summit_sessions") || "[]"); } catch(e) {}
+updateBadge();
+renderHistory();
 
-  r.onresult = (e) => {
-    let interim = '';
+// Tab
+function switchTab(name) {
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('tab-' + name).classList.add('active');
+  event.target.classList.add('active');
+}
+
+// Recording
+function toggleRec() {
+  isRecording ? stopRec() : startRec();
+}
+
+function startRec() {
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SR) { showToast("このブラウザは音声入力未対応です（Chrome推奨）", "error"); return; }
+  recognition = new SR();
+  recognition.lang = "ja-JP";
+  recognition.continuous = true;
+  recognition.interimResults = true;
+  finalText = "";
+  updateTranscript("", "");
+
+  recognition.onresult = (e) => {
+    let interim = "";
     for (let i = e.resultIndex; i < e.results.length; i++) {
-      if (e.results[i].isFinal) {
-        finalTranscript += e.results[i][0].transcript;
-      } else {
-        interim += e.results[i][0].transcript;
-      }
+      if (e.results[i].isFinal) finalText += e.results[i][0].transcript;
+      else interim += e.results[i][0].transcript;
     }
-    const el = document.getElementById('transcript-text');
-    el.innerHTML = finalTranscript + (interim ? `<span class="interim">${interim}</span>` : '');
-    el.scrollTop = el.scrollHeight;
+    updateTranscript(finalText, interim);
   };
-
-  r.onerror = (e) => {
-    if (e.error === 'no-speech') return;
-    showToast('認識エラー: ' + e.error);
-    stopRecording();
+  recognition.onerror = (e) => {
+    if (e.error === "not-allowed") {
+      showToast("マイクの使用が許可されていません", "error"); stopRec();
+    } else if (e.error !== "no-speech") {
+      showToast("エラー: " + e.error, "error"); stopRec();
+    }
   };
+  recognition.onend = () => { if (isRecording) recognition.start(); };
 
-  r.onend = () => {
-    if (isRecording) r.start();
-  };
-
-  return r;
-}
-
-// ===== 録音トグル =====
-function toggleRecording() {
-  if (!isRecording) startRecording();
-  else stopRecording();
-}
-
-function startRecording() {
-  recognition = initRecognition();
-  if (!recognition) return;
-
-  finalTranscript = '';
-  document.getElementById('transcript-text').innerHTML = '';
-  isRecording = true;
-
-  recognition.start();
-
-  const btn = document.getElementById('rec-btn');
-  btn.className = 'rec-btn recording';
-  document.getElementById('rec-icon').textContent = '⏹';
-  document.getElementById('rec-label').textContent = 'タップで停止';
-  document.getElementById('rec-status').textContent = '録音中...';
-  document.getElementById('rec-timer').classList.add('active');
-
-  elapsedSeconds = 0;
-  timerInterval = setInterval(() => {
-    elapsedSeconds++;
-    const m = Math.floor(elapsedSeconds / 60);
-    const s = elapsedSeconds % 60;
-    document.getElementById('rec-timer').textContent = `${m}:${s.toString().padStart(2,'0')}`;
-  }, 1000);
-}
-
-function stopRecording() {
-  if (!recognition) return;
-  isRecording = false;
-  recognition.stop();
-  recognition = null;
-
-  clearInterval(timerInterval);
-
-  const btn = document.getElementById('rec-btn');
-  btn.className = 'rec-btn idle';
-  document.getElementById('rec-icon').textContent = '🎤';
-  document.getElementById('rec-label').textContent = '録音開始';
-  document.getElementById('rec-status').textContent = '録音完了 — 内容を確認・修正してください';
-  document.getElementById('rec-timer').classList.remove('active');
-
-  if (finalTranscript.trim()) {
-    saveSession();
-    showToast('✅ 録音完了！内容を確認してください');
+  try {
+    recognition.start();
+    isRecording = true;
+    elapsed = 0;
+    document.getElementById('rec-btn').classList.add('recording');
+    document.getElementById('rec-icon').textContent = "⏹";
+    document.getElementById('rec-label').textContent = "停止";
+    document.getElementById('timer').classList.add('recording');
+    document.getElementById('rec-hint').textContent = "● 録音中… タップで停止";
+    timerInterval = setInterval(() => {
+      elapsed++;
+      const m = Math.floor(elapsed / 60);
+      const s = String(elapsed % 60).padStart(2, "0");
+      document.getElementById('timer').textContent = m + ":" + s;
+    }, 1000);
+  } catch(e) {
+    showToast("録音開始に失敗しました", "error");
   }
 }
 
-// ===== テキスト操作 =====
+function stopRec() {
+  if (recognition) { recognition.stop(); recognition = null; }
+  clearInterval(timerInterval);
+  isRecording = false;
+  document.getElementById('rec-btn').classList.remove('recording');
+  document.getElementById('rec-icon').textContent = "🎤";
+  document.getElementById('rec-label').textContent = "録音開始";
+  document.getElementById('timer').classList.remove('recording');
+  document.getElementById('rec-hint').textContent = "タップして録音を開始";
+  if (finalText.trim()) showToast("録音完了！「整理してスプシに保存」を押してください");
+}
+
+function updateTranscript(final, interim) {
+  const el = document.getElementById('transcript');
+  if (!final && !interim) {
+    el.innerHTML = '<span class="placeholder">録音を開始するとここにテキストが表示されます…</span>';
+    document.getElementById('char-count').style.display = 'none';
+    return;
+  }
+  el.textContent = final;
+  if (interim) {
+    const span = document.createElement('span');
+    span.className = 'interim';
+    span.textContent = ' ' + interim;
+    el.appendChild(span);
+  }
+  document.getElementById('char-count').style.display = 'flex';
+  document.getElementById('char-num').textContent = final.length + ' 文字';
+}
+
 function clearTranscript() {
-  finalTranscript = '';
-  document.getElementById('transcript-text').innerHTML = '';
-  document.getElementById('memo-text').value = '';
+  finalText = "";
+  updateTranscript("", "");
 }
 
 function copyTranscript() {
-  const text = document.getElementById('transcript-text').innerText;
-  if (!text.trim()) { showToast('テキストがありません'); return; }
-  navigator.clipboard.writeText(text).then(() => showToast('✅ テキストをコピーしました'));
+  if (!finalText.trim()) { showToast("コピーする内容がありません", "error"); return; }
+  navigator.clipboard.writeText(finalText).then(() => showToast("コピーしました！"));
 }
 
-function copyForClaude() {
-  const transcript = document.getElementById('transcript-text').innerText;
-  const memo = document.getElementById('memo-text').value;
-  if (!transcript.trim() && !memo.trim()) { showToast('テキストがありません'); return; }
+// Collapse
+function toggleCollapse() {
+  const body = document.getElementById('collapse-body');
+  const arrow = document.getElementById('collapse-arrow');
+  body.classList.toggle('open');
+  arrow.classList.toggle('open');
+}
 
-  let text = CLAUDE_PROMPT + transcript;
-  if (memo.trim()) text += '\n\n---補足メモ---\n' + memo;
+// Analyze & Save
+async function analyzeAndSave() {
+  const transcript = finalText.trim();
+  const memo = document.getElementById('memo').value.trim();
+  const voiceMemo = document.getElementById('voice-memo').value.trim();
+  const combined = [transcript, memo, voiceMemo].filter(Boolean).join("\n\n---補足---\n");
 
-  navigator.clipboard.writeText(text).then(() => {
-    showToast('✅ Claudeに貼り付け用テキストをコピーしました');
+  if (!combined) { showToast("テキストがありません", "error"); return; }
+
+  const btn = document.getElementById('analyze-btn');
+  btn.disabled = true;
+
+  try {
+    // Step 1: AI整理
+    btn.textContent = "⏳ AI整理中…";
+    showToast("AI整理中…", "info");
+    const member = document.getElementById('member-select').value;
+
+    const res = await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        model: "claude-sonnet-4-20250514",
+        max_tokens: 1500,
+        system: SYSTEM_PROMPT,
+        messages: [{ role: "user", content: `担当者候補: ${MEMBERS.join(",")}\n\n${combined}` }]
+      })
+    });
+    const data = await res.json();
+    const raw = data.content?.[0]?.text || "{}";
+    const obj = JSON.parse(raw.replace(/```json|```/g, "").trim());
+    if (member) obj.staff = member;
+    currentParsed = obj;
+
+    // Step 2: スプレッドシートに書き込み
+    btn.textContent = "⏳ スプシに書き込み中…";
+    showToast("スプレッドシートに書き込み中…", "info");
+
+    const now = new Date().toLocaleString("ja-JP", { timeZone: "Asia/Tokyo" });
+    const row = [
+      now, obj.staff||"", obj.company||"", obj.dataiku_user||"",
+      obj.role||"", obj.company_size||"", obj.visit_reason||"",
+      obj.ai_status||"", obj.pain_area||"", obj.pain||"",
+      obj.goal||"", obj.decision||"", obj.satisfaction||"",
+      obj.usage||"", obj.team||"", obj.bottleneck||"",
+      obj.next_phase||"", obj.effect||"", obj.support_needed||"",
+      obj.competitors||"", obj.action||"", obj.email||"",
+      obj.impression||""
+    ];
+
+    const encodedData = encodeURIComponent(JSON.stringify({ row }));
+    await fetch(`${WEBHOOK_URL}?data=${encodedData}`);
+
+    // 履歴保存
+    const action = obj.action || "";
+    sessions.unshift({
+      time: new Date().toLocaleTimeString("ja-JP", { hour:"2-digit", minute:"2-digit" }),
+      company: obj.company || "不明",
+      action,
+      staff: obj.staff || ""
+    });
+    sessions = sessions.slice(0, 20);
+    localStorage.setItem("summit_sessions", JSON.stringify(sessions));
+    updateBadge();
+    renderHistory();
+    renderResult(obj);
+
+    // 結果タブへ
+    document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById('tab-result').classList.add('active');
+    document.querySelectorAll('.tab-btn')[1].classList.add('active');
+
+    showToast("✅ 整理＆スプシ保存完了！");
+
+  } catch(e) {
+    showToast("エラー: " + e.message, "error");
+  }
+
+  btn.disabled = false;
+  btn.textContent = "✨ 整理してスプシに保存";
+}
+
+function renderResult(obj) {
+  const fields = [
+    ["担当者名", obj.staff], ["会社名・部署名", obj.company], ["役職", obj.role],
+    ["従業員規模", obj.company_size], ["参加理由", obj.visit_reason],
+    ["AI導入状況", obj.ai_status], ["困っている領域", obj.pain_area],
+    ["課題・ペイン", obj.pain], ["理想のゴール", obj.goal],
+    ["意思決定プロセス", obj.decision], ["満足度", obj.satisfaction],
+    ["利用用途", obj.usage], ["活用チーム", obj.team],
+    ["ボトルネック", obj.bottleneck], ["次フェーズ", obj.next_phase],
+    ["導入効果", obj.effect], ["サポート希望", obj.support_needed],
+    ["比較ツール", obj.competitors], ["メールアドレス", obj.email], ["感想", obj.impression]
+  ].filter(([,v]) => v);
+
+  const isNew = obj.dataiku_user && obj.dataiku_user.includes("新規");
+  const action = obj.action || "";
+  const actionClass = action.includes("商談") ? "commercial" : action.includes("資料") ? "material" : "none";
+  const actionIcon = action.includes("商談") ? "🤝 " : action.includes("資料") ? "📄 " : "💬 ";
+
+  let html = `
+    <div class="saved-banner">
+      <span style="font-size:18px">✅</span>
+      <div>
+        <div class="saved-title">スプレッドシートに保存済み</div>
+        <div class="saved-sub">Form Responses 1 シートに追記されました</div>
+      </div>
+    </div>`;
+
+  if (obj.dataiku_user) {
+    html += `<div class="customer-badge ${isNew ? 'new' : 'existing'}">${isNew ? '🆕 新規顧客' : '✅ 既存顧客'} — ${obj.dataiku_user}</div>`;
+  }
+
+  fields.forEach(([l, v]) => {
+    html += `<div class="result-field"><div class="field-label">${l}</div><div class="field-value">${v}</div></div>`;
   });
-}
 
-function openForm() {
-  window.open(FORM_URL, '_blank');
-}
+  if (action) {
+    html += `<div class="action-field ${actionClass}"><div class="field-label">次のアクション</div><div class="action-value ${actionClass}">${actionIcon}${action}</div></div>`;
+  }
 
-// ===== 履歴 =====
-function saveSession() {
-  const sessions = JSON.parse(localStorage.getItem('rec_sessions') || '[]');
-  const now = new Date();
-  sessions.unshift({
-    time: now.toLocaleTimeString('ja-JP', {hour:'2-digit', minute:'2-digit'}),
-    text: finalTranscript,
-    memo: document.getElementById('memo-text').value,
-    duration: elapsedSeconds
-  });
-  if (sessions.length > 20) sessions.pop();
-  localStorage.setItem('rec_sessions', JSON.stringify(sessions));
-  renderHistory();
+  html += `<button class="big-btn secondary" onclick="resetAll()" style="margin-top:4px">🔄 次の接客へ</button>`;
+  document.getElementById('result-content').innerHTML = html;
 }
 
 function renderHistory() {
-  const sessions = JSON.parse(localStorage.getItem('rec_sessions') || '[]');
-  const list = document.getElementById('history-list');
-  sessionCount = sessions.length;
-  document.getElementById('session-count').textContent = `本日 ${sessionCount}件`;
-
-  if (!sessions.length) {
-    list.innerHTML = '<div class="empty-history">まだ記録がありません</div>';
+  if (sessions.length === 0) {
+    document.getElementById('history-content').innerHTML = '<div class="empty-state">まだ記録がありません</div>';
     return;
   }
-
-  list.innerHTML = sessions.map((s, i) => `
-    <div class="history-item" onclick="loadSession(${i})">
-      <div class="history-meta">${s.time} · ${Math.floor(s.duration/60)}分${s.duration%60}秒</div>
-      <div class="history-preview">${s.text || '（テキストなし）'}</div>
-    </div>
-  `).join('');
+  let html = "";
+  sessions.forEach(s => {
+    const cls = s.action?.includes("商談") ? "commercial" : s.action?.includes("資料") ? "material" : "";
+    const actionColor = s.action?.includes("商談") ? "color:var(--amber)" : s.action?.includes("資料") ? "color:var(--blue)" : "color:var(--text3)";
+    const actionIcon = s.action?.includes("商談") ? "🤝 " : s.action?.includes("資料") ? "📄 " : "";
+    html += `<div class="history-item ${cls}">
+      <div class="history-meta">${s.time}${s.staff ? ' · ' + s.staff : ''}</div>
+      <div class="history-company">${s.company || '（会社名不明）'}</div>
+      ${s.action ? `<div class="history-action" style="${actionColor}">${actionIcon}${s.action}</div>` : ''}
+    </div>`;
+  });
+  document.getElementById('history-content').innerHTML = html;
 }
 
-function loadSession(index) {
-  const sessions = JSON.parse(localStorage.getItem('rec_sessions') || '[]');
-  const s = sessions[index];
-  finalTranscript = s.text;
-  document.getElementById('transcript-text').innerText = s.text;
-  document.getElementById('memo-text').value = s.memo || '';
-  showToast('📂 履歴を読み込みました');
+function updateBadge() {
+  const badge = document.getElementById('badge');
+  badge.textContent = `本日 ${sessions.length} 件`;
+  badge.className = sessions.length > 0 ? 'badge has-data' : 'badge';
 }
 
-function clearHistory() {
-  if (!confirm('履歴を全削除しますか？')) return;
-  localStorage.removeItem('rec_sessions');
-  renderHistory();
+function resetAll() {
+  finalText = ""; currentParsed = null;
+  updateTranscript("", "");
+  document.getElementById('memo').value = "";
+  document.getElementById('voice-memo').value = "";
+  document.getElementById('member-select').value = "";
+  document.getElementById('member-select').className = "";
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('tab-record').classList.add('active');
+  document.querySelectorAll('.tab-btn')[0].classList.add('active');
 }
 
-// ===== トースト =====
-function showToast(msg) {
-  const t = document.getElementById('toast');
-  t.textContent = msg;
-  t.classList.add('show');
-  setTimeout(() => t.classList.remove('show'), 2500);
+// Toast
+let toastTimer = null;
+function showToast(msg, type = "success") {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.className = `toast ${type} show`;
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => el.classList.remove('show'), 3500);
 }
-
-// ===== 初期化 =====
-renderHistory();
 </script>
 </body>
 </html>
