@@ -575,7 +575,30 @@ async function analyzeAndSave() {
     ];
 
     const encodedData = encodeURIComponent(JSON.stringify({ row }));
-    await fetch(`${WEBHOOK_URL}?data=${encodedData}`);
+    await new Promise((resolve, reject) => {
+      const cbName = "gcb_" + Date.now();
+      const script = document.createElement("script");
+      const timeout = setTimeout(() => {
+        delete window[cbName];
+        document.body.removeChild(script);
+        reject(new Error("タイムアウト"));
+      }, 15000);
+      window[cbName] = (result) => {
+        clearTimeout(timeout);
+        delete window[cbName];
+        document.body.removeChild(script);
+        if (result.status === "ok") resolve(result);
+        else reject(new Error(result.message || "書き込みエラー"));
+      };
+      script.src = `${WEBHOOK_URL}?callback=${cbName}&data=${encodedData}`;
+      script.onerror = () => {
+        clearTimeout(timeout);
+        delete window[cbName];
+        document.body.removeChild(script);
+        reject(new Error("スクリプト読み込みエラー"));
+      };
+      document.body.appendChild(script);
+    });
 
     // 履歴保存
     const action = obj.action || "";
